@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: eos-master
+spec:
+  selector:
+    app: eos
+  type: ClusterIP
+  ports:
+  - name: nodeos
+    protocol: TCP
+    port: 8888
+    targetPort: 8888
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eos-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eos
+  template:
+    metadata:
+      labels:
+        app: eos
+    spec:
+      containers:
+      - name: eos 
+        image: eosio/eos-dev:v1.0.8 
+        imagePullPolicy: IfNotPresent
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "nohup nodeos -e -p eosio --plugin eosio::wallet_api_plugin --plugin eosio::wallet_plugin --plugin eosio::producer_plugin --plugin eosio::history_plugin --plugin eosio::chain_api_plugin --plugin eosio::history_api_plugin --plugin eosio::http_plugin -d /mnt/dev/data --config-dir /mnt/dev/config --http-server-address=0.0.0.0:8888 --access-control-allow-origin=* --contracts-console" ]
+        ports:
+        - containerPort: 8888 

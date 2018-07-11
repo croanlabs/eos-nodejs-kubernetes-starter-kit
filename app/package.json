@@ -1,0 +1,14 @@
+{
+  "name": "eos-nodejs-kubernetes-starter-kit",
+  "version": "1.0.0",
+  "description": "Node + EOS blockchain + kubernetes starter kit",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Consensus Clubs",
+  "license": "MIT",
+  "dependencies": {
+    "eosjs": "^15.0.3"
+  }
+}
