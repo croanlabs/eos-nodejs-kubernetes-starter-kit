@@ -9,6 +9,7 @@
   "author": "Consensus Clubs",
   "license": "MIT",
   "dependencies": {
-    "eosjs": "^15.0.3"
+    "eosjs": "^15.0.3",
+    "eosjs-ecc": "^4.0.2"
   }
 }
