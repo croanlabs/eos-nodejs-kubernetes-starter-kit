@@ -1,6 +1,4 @@
 # EOS blockchain + Node.js + Kubernetes starter kit
-Starter kit project using EOS blockchain (local instance) + Node.js + Kubernetes (Minikube).
-
 ## Introduction
 The aim of this project is to provide the simplest base configuration for a project using EOS blockchain, Node.js and Kubernetes. Take into consideration that a local instance of the EOS blockchain is set up, so your JS code will not be talking to the EOS network but to your local instance of the blockchain. The eosjs library is used to interact with the blockchain from the JS side.
 
