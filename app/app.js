@@ -2,8 +2,7 @@ const Eos = require('eosjs');
 const { PrivateKey, PublicKey, Signature, Aes, key_utils, config } = require('eosjs-ecc');
 
 /**
- * Generate keystore to manage keys used to interact with the EOS
- * blockchain.
+ * Generate key pair.
  *
  */
 function generateKeys() {
@@ -11,7 +10,6 @@ function generateKeys() {
     PrivateKey.randomKey().then(privateKey => {
       let result = {};
       result.privateWif = privateKey.toWif();
-      result.privateKey = privateKey;
       result.publicKey = PrivateKey.fromString(result.privateWif).toPublic().toString();
       resolve(result);
     }).catch((err) => reject(err));
@@ -19,10 +17,10 @@ function generateKeys() {
 }
 
 /**
- * Configure EOS so that API calls can be executed.
+ * Configure EOS so API calls can be executed.
  *
  */
-function confEos(keyprovider) {
+function confEos(keyprovider, chainId) {
   // Environment variables are automatically available to discover each
   // service that was created before this pod (nodejs pod) was
   // instantiated.
@@ -30,13 +28,13 @@ function confEos(keyprovider) {
   const eosPort = process.env.EOS_MASTER_SERVICE_PORT;
 
   const config = {
-    chainId: null,
+    chainId: chainId,
     keyProvider: keyprovider,
     httpEndpoint: `http://${eosHost}:${eosPort}`,
     expireInSeconds: 60,
     broadcast: true,
     verbose: false,
-    sign: false
+    sign: true
   }
   return Eos(config);
 }
@@ -45,76 +43,45 @@ function confEos(keyprovider) {
  * Create an EOS account.
  *
  */
-function createEosAccount(eos, accountName, pubkey) {
-   eos.transaction(tr => {
-    tr.newaccount({
+function createAccount(eos, accountName, pubkey) {
+   eos.newaccount({
       creator: 'eosio',
       name: accountName,
       owner: pubkey,
       active: pubkey,
-    });
-
-    tr.buyrambytes({
-      payer: 'eosio',
-      receiver: accountName,
-      bytes: 8192,
-    });
-
-    tr.delegatebw({
-      from: 'eosio',
-      receiver: accountName,
-      stake_net_quantity: '10.0000 SYS',
-      stake_cpu_quantity: '10.0000 SYS',
-      transfer: 0,
-    });
-  });
+   });
 }
 
 /**
  * Perform example tasks on the blockchain.
  *
  */
-async function testBlockchain(accountName) {
+async function getInfoBlockchain(eos, accountName) {
   // Get block No. 1
-  eos.getBlock(1, (error, result) => {
-    console.log(result);
+  await eos.getBlock(1, (error, result) => {
+    console.log('Block 1 Info\n------------\n', result);
   });
 
   // Get blockchain general info
-  eos.getInfo((error, result) => {
-    console.log(error, result);
+  await eos.getInfo((error, result) => {
+    console.log('Blockchain Info\n--------------\n', result);
   });
-
-  // Create new account
-  eos.transaction(tr => {
-    tr.newaccount({
-      creator: 'eosio',
-      name: accountName,
-      owner: pubkey,
-      active: pubkey
-    })
-
-    tr.buyrambytes({
-      payer: 'eosio',
-      receiver: accountName,
-      bytes: 8192
-    })
-
-    tr.delegatebw({
-      from: 'eosio',
-      receiver: accountName,
-      stake_net_quantity: '10.0000 SYS',
-      stake_cpu_quantity: '10.0000 SYS',
-      transfer: 0
-    })
-  })
 }
 
 async function run() {
-  const accountName = 'consensuscl';
+  // Default keys for the eosio account and default chain id on the
+  // eos-dev container.
+  const pubk = "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV";
+  const privk = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3";
+  const chainId = "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f";
+
+  // Info of the new account to be created.
+  const accountName = 'conclubs';
   const keys = await generateKeys();
-  const eos = confEos([keys.privateWif]);
-  createEosAccount(eos, accountName, keys.publicKey);
+
+  let eos = confEos(privk, chainId);
+  await createAccount(eos, accountName, keys.publicKey);
+  await getInfoBlockchain(eos, accountName);
 }
 
 run();
